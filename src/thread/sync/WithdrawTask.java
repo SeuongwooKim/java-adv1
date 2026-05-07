@@ -1,0 +1,18 @@
+package thread.sync;
+
+public class WithdrawTask implements Runnable {
+
+    private final BankAccount account;
+    private final int amount;
+
+    public WithdrawTask(BankAccount account, int amount) {
+        this.account = account;
+        this.amount = amount;
+    }
+
+    @Override
+    public void run() {
+        account.witdraw(amount);
+
+    }
+}
