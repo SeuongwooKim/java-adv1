@@ -4,7 +4,6 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 import static util.MyLogger.log;
-import static util.ThreadUtils.sleep;
 
 public class BoundedQueueV3 implements BoundedQueue {
 
@@ -20,19 +19,35 @@ public class BoundedQueueV3 implements BoundedQueue {
     public synchronized void put(String data) {
         while (queue.size() == max) {
             log("[put] 큐가 가득참, 생산자 대기");
-            sleep(1000);
+            try {
+                wait(); // RUNNABLE -> WAITING 락 반납
+                log("[put] 생산자 깨어남");
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
         queue.offer(data);
+        log("[put] 생산자 데이터 저장, notify() 호출");
+        notify(); // 대기 스레드, WAIT -> BLOCKED
+        // notifyAll();
     }
 
     @Override
     public synchronized String take() {
         while (queue.isEmpty()) {
             log("[take] 큐에 데이터가 없음, 소비자 대기");
-            sleep(1000);
+            try {
+                wait();
+                log("[take] 소비자 깨어남");
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
 
-        return queue.poll();
+        String data = queue.poll();
+        log("[take] 소비자 데이터 획득, notify 호출");
+        notify(); // 대기 스레드, WAIT -> BLOCKED
+        return data;
     }
 
     @Override
